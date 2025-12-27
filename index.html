@@ -139,6 +139,8 @@
         const Facebook = ({ size = 24, className }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
         );
+        
+        // Noteアイコン: 画像ファイルとして表示
         const NoteLogo = ({ size = 24, className }) => (
             <img 
                 src="./photo/note_icon.png" 
@@ -217,9 +219,7 @@
 
         // --- SNSデータ定義 ---
         const SOCIAL_LINKS = [
-            // { name: "X", url: "#", icon: XIcon, color: "text-black" }, // Twitter -> X に変更
             { name: "Instagram", url: "https://www.instagram.com/yurumachi_nagaoka/", icon: Instagram, color: "text-pink-500" },
-            // { name: "Facebook", url: "#", icon: Facebook, color: "text-blue-700" },
             { name: "note", url: "https://note.com/yurumachi", icon: NoteLogo, color: "text-[#41C9B4]" },
         ];
 
@@ -294,9 +294,8 @@
         const App = () => {
             const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-            // フォームの状態管理用
+            // フォームの状態管理用（Reactで値を保持しつつ、HTMLフォーム送信時に同期）
             const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
-            const [isSubmitted, setIsSubmitted] = useState(false);
 
             const scrollToSection = (id) => {
                 const element = document.getElementById(id);
@@ -314,46 +313,8 @@
                 setFormData(prev => ({ ...prev, [name]: value }));
             };
 
-            // ★修正: 送信ボタンを押したときの関数
-            const handleSubmit = async (e) => {
-                e.preventDefault(); // リロードを防ぐ
-
-                // バリデーション（入力チェック）
-                if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-                    alert("必須項目に記入がありません。\n全ての項目を入力してください。");
-                    return;
-                }
-
-                // ★ここに実際の送信先URLを設定します (Formspreeなど)
-                const formEndpoint = "[https://formspree.io/f/mlgegqng](https://formspree.io/f/mlgegqng)";
-
-                // URLが書き換えられていない場合のデモ用アラート
-                if (formEndpoint.includes("mlgegqng")) {
-                    alert("【注意】\n送信先URLが設定されていません。\nコード内の 'YOUR_FORM_ID' を実際のFormspree IDに書き換えてください。\n\n（今回はデモとして完了画面を表示します）");
-                    setIsSubmitted(true);
-                    return;
-                }
-
-                try {
-                    // 実際にデータを送信する
-                    const response = await fetch(formEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    if (response.ok) {
-                        setIsSubmitted(true);
-                    } else {
-                        alert("送信に失敗しました。しばらく経ってから再度お試しください。");
-                    }
-                } catch (error) {
-                    alert("エラーが発生しました。ネットワーク接続を確認してください。");
-                }
-            };
+            // ★指定されたFormspreeのエンドポイント
+            const formEndpoint = "https://formspree.io/f/mlgegqng";
 
             return (
                 <div className="w-full min-h-screen bg-transparent font-sans text-[#535353] overflow-x-hidden relative">
@@ -515,7 +476,7 @@
                                     </FadeIn>
                                 ))}
                                 <FadeIn delay={600} className="mt-8 text-right">
-                                    <button className="text-[#00989E] font-bold border-2 border-[#00989E] bg-white px-6 py-3 rounded-full hover:bg-[#00989E]">一覧を見る</button>
+                                    <button className="text-[#00989E] font-bold border-2 border-[#00989E] bg-white px-6 py-3 rounded-full hover:bg-[#00989E] hover:text-white ">一覧を見る</button>
                                 </FadeIn>
                             </div>
                         </div>
@@ -571,99 +532,81 @@
                             <div className="absolute top-[-50px] left-[-50px] w-[500px] h-[500px] bg-[#FFBD59] opacity-30 blob-shape -z-10 rotate-12 animate-float-morph"></div>
 
                             <FadeIn delay={200} direction="up" className="w-full">
-                                {/* ★ここが重要: isSubmittedがtrueなら完了画面、falseならフォームを表示 */}
-                                {isSubmitted ? (
-                                    <div className="w-full max-w-[640px] mx-auto solid-panel p-8 md:p-16 text-center flex flex-col items-center justify-center gap-6 min-h-[400px] animate-slide-down">
-                                        <div className="w-20 h-20 bg-[#FFBD59] rounded-full flex items-center justify-center text-white mb-4 shadow-md">
-                                            <CheckCircle size={40} strokeWidth={3} />
+                                {/* ★変更: action属性とmethod属性を使用し、onSubmitを削除 */}
+                                <div className="w-full max-w-[640px] mx-auto solid-panel p-6 md:p-12">
+                                    <form action={formEndpoint} method="POST" className="flex flex-col gap-6">
+                                        <div className="w-full">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <label className="text-lg font-jp font-medium text-[#535353]">お名前</label>
+                                                <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                required
+                                                value={formData.name}
+                                                onChange={handleInputChange}
+                                                placeholder="例：山田 太郎"
+                                                className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
+                                            />
                                         </div>
-                                        <h3 className="text-2xl md:text-3xl font-bold text-[#535353]">送信完了しました！</h3>
-                                        <p className="text-lg font-medium text-[#535353] leading-relaxed">
-                                            お問い合わせありがとうございます。<br />
-                                            内容を確認次第、担当者よりご連絡いたします。
-                                        </p>
+                                        <div className="w-full">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <label className="text-lg font-jp font-medium text-[#535353]">メールアドレス</label>
+                                                <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
+                                            </div>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                required
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                placeholder="example@email.com"
+                                                className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="w-full">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <label className="text-lg font-jp font-medium text-[#535353]">件名</label>
+                                                <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="subject"
+                                                required
+                                                value={formData.subject}
+                                                onChange={handleInputChange}
+                                                className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="w-full">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <label className="text-lg font-jp font-medium text-[#535353]">内容</label>
+                                                <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
+                                            </div>
+                                            <textarea
+                                                name="message"
+                                                required
+                                                value={formData.message}
+                                                onChange={handleInputChange}
+                                                placeholder="お問い合わせ内容をご記入ください"
+                                                className="w-full h-[200px] p-4 border-2 border-gray-300 rounded-lg bg-white resize-none focus:border-[#FFBD59] focus:outline-none transition-all"
+                                            ></textarea>
+                                        </div>
                                         <button
-                                            onClick={() => {
-                                                setIsSubmitted(false);
-                                                setFormData({ name: "", email: "", subject: "", message: "" });
-                                            }}
-                                            className="mt-8 px-10 py-4 bg-[#00989E] text-white font-bold text-xl rounded-full shadow-lg hover:bg-[#007f84] hover:shadow-xl hover:-translate-y-1 transition-all"
+                                            type="submit"
+                                            className="w-full md:w-auto md:px-12 py-4 bg-[#FFBD59] text-white font-bold text-xl rounded-full border-2 border-transparent shadow-md hover:bg-white hover:text-[#FFBD59] hover:border-[#FFBD59] transition-all transform hover:-translate-y-1 mx-auto mt-6"
                                         >
-                                            フォームに戻る
+                                            送信する
                                         </button>
-                                    </div>
-                                ) : (
-                                    <div className="w-full max-w-[640px] mx-auto solid-panel p-6 md:p-12">
-                                        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                                            <div className="w-full">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <label className="text-lg font-jp font-medium text-[#535353]">お名前</label>
-                                                    <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    name="name"
-                                                    value={formData.name}
-                                                    onChange={handleInputChange}
-                                                    placeholder="例：山田 太郎"
-                                                    className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
-                                                />
-                                            </div>
-                                            <div className="w-full">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <label className="text-lg font-jp font-medium text-[#535353]">メールアドレス</label>
-                                                    <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
-                                                </div>
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={formData.email}
-                                                    onChange={handleInputChange}
-                                                    placeholder="example@email.com"
-                                                    className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
-                                                />
-                                            </div>
-                                            <div className="w-full">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <label className="text-lg font-jp font-medium text-[#535353]">件名</label>
-                                                    <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    name="subject"
-                                                    value={formData.subject}
-                                                    onChange={handleInputChange}
-                                                    className="w-full p-4 border-2 border-gray-300 rounded-lg bg-white focus:border-[#FFBD59] focus:outline-none transition-all"
-                                                />
-                                            </div>
-                                            <div className="w-full">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <label className="text-lg font-jp font-medium text-[#535353]">内容</label>
-                                                    <span className="text-red-500 text-xs font-bold px-2 py-0.5 bg-white border border-red-500 rounded-sm">必須</span>
-                                                </div>
-                                                <textarea
-                                                    name="message"
-                                                    value={formData.message}
-                                                    onChange={handleInputChange}
-                                                    placeholder="お問い合わせ内容をご記入ください"
-                                                    className="w-full h-[200px] p-4 border-2 border-gray-300 rounded-lg bg-white resize-none focus:border-[#FFBD59] focus:outline-none transition-all"
-                                                ></textarea>
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                className="w-full md:w-auto md:px-12 py-4 bg-[#FFBD59] text-white font-bold text-xl rounded-full border-2 border-transparent shadow-md hover:bg-white hover:border-[#FFBD59] transition-all transform hover:-translate-y-1 mx-auto mt-6"
-                                            >
-                                                送信する
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
+                                    </form>
+                                </div>
                             </FadeIn>
                         </div>
                     </section>
 
                     {/* SNS　*/}
-                    <section id="sns" className="w-w-full max-w-[1280px] mx-auto py-8 md:py-12 px-4 md:px-9 my-6">
+                    <section id="sns" className="w-full max-w-[1280px] mx-auto py-8 md:py-12 px-4 md:px-9 my-6">
                         <FadeIn>
                             <div className="inline-block mb-8">
                                 <SectionTitle title="SNS" />
