@@ -325,10 +325,10 @@
                 }
 
                 // ★ここに実際の送信先URLを設定します (Formspreeなど)
-                const formEndpoint = "https://formspree.io/f/YOUR_FORM_ID";
+                const formEndpoint = "[https://formspree.io/f/mlgegqng](https://formspree.io/f/mlgegqng)";
 
                 // URLが書き換えられていない場合のデモ用アラート
-                if (formEndpoint.includes("YOUR_FORM_ID")) {
+                if (formEndpoint.includes("mlgegqng")) {
                     alert("【注意】\n送信先URLが設定されていません。\nコード内の 'YOUR_FORM_ID' を実際のFormspree IDに書き換えてください。\n\n（今回はデモとして完了画面を表示します）");
                     setIsSubmitted(true);
                     return;
