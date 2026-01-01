@@ -152,7 +152,12 @@
 
         // --- 画像URL定義 ---
         const IMAGES = {
-            hero: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1280&q=80",
+            // ★変更: ヒーロー画像を配列に変更して複数設定
+            heroSlides: [
+                "./photo/horoheader_1.jpg",
+                "./photo/horoheader_2.jpg",
+                "./photo/horoheader_3.jpg"
+            ],
             logo: "./photo/yurumachi_logo.jpg",
             footerLogo: "./photo/yurumachi_logo.jpg",
             event: "./photo/2024 Photo_event.jpg",
@@ -293,6 +298,8 @@
         // --- メインアプリ ---
         const App = () => {
             const [isMenuOpen, setIsMenuOpen] = useState(false);
+            // ★追加: ヒーロー画像のインデックス管理用
+            const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
             // フォームの状態管理用（Reactで値を保持しつつ、HTMLフォーム送信時に同期）
             const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
@@ -306,6 +313,14 @@
             const scrollToTop = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
+
+            // ★追加: カルーセルの自動切り替え
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    setCurrentHeroIndex((prev) => (prev + 1) % IMAGES.heroSlides.length);
+                }, 5000); // 5秒ごとに切り替え
+                return () => clearInterval(interval);
+            }, []);
 
             // 入力内容を更新する関数
             const handleInputChange = (e) => {
@@ -354,17 +369,28 @@
 
                     <div className="h-[80px] md:h-[114px]"></div>
 
-                    {/* ヒーロー */}
+                    {/* ★変更: ヒーロー (カルーセル化 & 紹介文追加) */}
                     <section className="w-full max-w-[1920px] mx-auto h-[400px] md:h-[800px] bg-white relative overflow-hidden group border-b border-gray-200">
-                        <FadeIn delay={200} className="w-full h-full">
-                            <img src={IMAGES.hero} alt="Hero" className="w-full h-full object-cover transition-transform duration-[20s] ease-linear transform group-hover:scale-105" />
-                        </FadeIn>
-                        <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
-                            <FadeIn delay={500} direction="up">
-                                <div className="bg-white px-10 py-8 solid-panel">
-                                    <h1 className="text-4xl md:text-2xl font-bold text-[#535353] font-jp tracking-wider">ゆるく、たのしく、ふつふつアツいまち<br />（背景にイメージ画像挿入）</h1>
-                                </div>
-                            </FadeIn>
+                        
+                        {/* カルーセル画像 */}
+                        {IMAGES.heroSlides.map((src, index) => (
+                            <div
+                                key={index}
+                                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                                    index === currentHeroIndex ? 'opacity-100' : 'opacity-0'
+                                }`}
+                            >
+                                <img src={src} alt={`Hero ${index}`} className="w-full h-full object-cover" />
+                            </div>
+                        ))}  
+
+                        {/* ★追加: 左下の固定紹介文 */}
+                        <div className="absolute bottom-4 left-4 md:bottom-12 md:left-12 max-w-[50%] md:max-w-md bg-white/85 p-4 md:p-6 z-20 shadow-lg">
+                            <h2 className="text-lg md:text-4xl font-bold text-[#535353] mb-2 font-jp">長岡を、もっと面白く。</h2>
+                            <p className="text-l md:text-ms font-medium text-[#535353] mb-2 leading-relaxed font-jp">
+                                私たちは、学生と若者が主体となり、地域と連携して新しい価値を創造する団体です。<br className="hidden md:block"/>
+                                「ゆるく、たのしく」をモットーに、長岡の街に新たな熱狂を生み出します。
+                            </p>
                         </div>
                     </section>
 
